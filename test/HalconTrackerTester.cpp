@@ -6,6 +6,7 @@
 #include <chrono>
 
 #include "pid.hpp"
+#include "pbvs_helper.hpp"
 
 #define debug if (1) std::cout
 #define debug_assert if (0) assert
@@ -60,8 +61,8 @@ int main(int argc, char** argv) try
     while(1)
     {
         auto start = std::chrono::high_resolution_clock::now();
-
-        Eigen::Isometry3d cMo = tracker.detect(false, img);
+        tracker.capture(img);
+        Eigen::Isometry3d cMo = tracker.detect(img);
         cv::imshow("pbvs", img);
         char c = cv::waitKey(1);
         if (c == 'q')
@@ -81,21 +82,22 @@ int main(int argc, char** argv) try
 
         else if (c == 't')
         {
-            std::cout << "-----STORED CURRENT cdMo-----" << "\n";
+            std::cout << "\n\n\n-----STORED CURRENT cdMo-----" << "\n";
             rtde_control.speedStop();
             cdMo.setIdentity();
             Eigen::Vector3d t_term = cMo.translation();
 
             for (int i = 0; i < 3; ++i) 
             {
-                Eigen::Isometry3d cMo_tmp = tracker.detect(false, img);
+                tracker.capture(img);
+                Eigen::Isometry3d cMo_tmp = tracker.detect(img);
                 t_term += cMo_tmp.translation();
             }
             t_term /= 4;
 
             cdMo = cMo;
             cdMo.translation() = t_term; 
-            debug << "||cdMo|| \n" << cMo.matrix() << "\n";
+            debug << "||cdMo|| \n" << cMo.matrix() << "\n\n\n";
             start_servoing = true;
             continue;
         }
@@ -146,11 +148,9 @@ int main(int argc, char** argv) try
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> duration = end-start;
         int wait = Dt - duration.count(); 
+        debug << "||step freuq||" << duration.count() << " ms\n";
         if (wait > 0)
-        {
-            debug << "||timer|| Waited " << wait << " ms\n";
             std::this_thread::sleep_for(std::chrono::milliseconds(wait));
-        }
 
     }
 

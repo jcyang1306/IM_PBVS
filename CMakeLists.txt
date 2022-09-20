@@ -30,6 +30,7 @@ set(realsense2_LIBRARIES "${realsense2_LIBRARY_DIRS}/librealsense2.so")
 
 add_library(halcon_tracker SHARED
             src/HalconTracker.cpp
+            src/PBVS.cpp
             src/pid.cpp
             )   
 
@@ -47,6 +48,9 @@ ament_target_dependencies(halcon_tracker
   Boost
 )
 
+target_link_libraries(halcon_tracker ur_rtde::rtde)
+
+
 ament_export_dependencies(realsense2 OpenCV Boost Eigen3)
 
 install(TARGETS halcon_tracker
@@ -54,10 +58,13 @@ install(TARGETS halcon_tracker
 
 # executable for testing
 add_executable(halconTrackerTester test/HalconTrackerTester.cpp)
-target_link_libraries(halconTrackerTester halcon_tracker ur_rtde::rtde)
+target_link_libraries(halconTrackerTester halcon_tracker)
 
 add_executable(pidTester test/pidTester.cpp)
 target_link_libraries(pidTester halcon_tracker)
+
+add_executable(IMServoTester test/PBVSTester.cpp)
+target_link_libraries(IMServoTester halcon_tracker)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
