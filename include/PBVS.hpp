@@ -20,7 +20,8 @@ public:
         eMc_( Eigen::Isometry3d::Identity() ),
         p_tracker( NULL ),
         rtde_c( NULL ),
-        rtde_r( NULL )
+        rtde_r( NULL ),
+        oMo_tvec_( Eigen::Vector3d::Zero(3, 1) )
     {
         // Connect  camera?
         // UR RTDE init
@@ -30,7 +31,7 @@ public:
 
         // cMe_ = eMc.inverse();
 
-        // Set tasnlation pid controller params (dt, max, min, kp, kd, ki)
+        // Set pid controller params (dt, max, min, kp, kd, ki)
         double Dt = 1000 / 30;
         pid_tx = std::make_unique<PID> (Dt, 0.5, -0.5, 0.6, 0.05, 0.01);
         pid_ty = std::make_unique<PID> (Dt, 0.5, -0.5, 0.6, 0.05, 0.01);
@@ -50,9 +51,7 @@ public:
     bool setGain();
 
     bool setTask(Eigen::Isometry3d  &cdMo);
-    bool setTask();
-    
-    bool startTask();
+    bool setTask(double offsetZ);
 
     bool connectRobot();
 
@@ -67,7 +66,12 @@ public:
     void stopAll();
 
     void speedL(std::vector<double> vc) { rtde_c->speedL(vc, 0.5); }
-    void reaching(double offsetZ);
+
+    void topdownReaching(double offsetZ);
+
+    void sixDofReaching(int num_pts, double offsetZ);
+
+    std::vector<double> servoReaching(int num_pts);
 
     void logInfo()
     {
@@ -75,8 +79,11 @@ public:
         std::cout  << "\n||cdMo||" << cdMo_.matrix() << "\n";
     }
 
+    void setZoffset(double offsetZ) { oMo_tvec_[2] = offsetZ; }
+
 protected:
     Eigen::Isometry3d cdMo_;
+    Eigen::Vector3d oMo_tvec_;
     Eigen::Isometry3d eMc_;
     std::shared_ptr<HalconTracker> p_tracker;
     std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_c;

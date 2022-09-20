@@ -23,9 +23,9 @@ int main(int argc, char** argv)
     bool start_servoing = false;
     cv::Mat img = cv::Mat(cv::Size(1280, 720), CV_8UC3);
     double Dt = 1000 / 30;
+    std::vector<double> servo_waypts;
     while (!stop) 
     {
-
         auto start = std::chrono::high_resolution_clock::now();
 
         IMServo.capture(img);
@@ -34,6 +34,13 @@ int main(int argc, char** argv)
         // Compute vc and apply to robot
         if( !cMo.isApprox(Eigen::Isometry3d::Identity()) )
         {
+            if (start_servoing && !servo_waypts.empty())
+            {
+                debug << "||curr zoffset||" << servo_waypts.back() << " ms\n";
+                IMServo.setZoffset(servo_waypts.back());
+                servo_waypts.pop_back();
+            }
+
             std::vector<double> vc = IMServo.computeVc(cMo, 0.0001);
             if (start_servoing) IMServo.speedL(vc); 
         }
@@ -51,7 +58,7 @@ int main(int argc, char** argv)
         else if (c == 't')
         {
             std::cout << "\n\n\n-----STORED CURRENT cdMo-----" << "\n";
-            IMServo.setTask(); // save curr pose as desired pose
+            IMServo.setTask(0.08); // save curr pose as desired pose
             continue;
         }
 
@@ -65,7 +72,8 @@ int main(int argc, char** argv)
         else if (c == 'r')
         {
             std::cout << "-----REACHING-----" << "\n";
-            IMServo.reaching(0.05);
+            IMServo.topdownReaching(0.05);
+            servo_waypts = IMServo.servoReaching(20);
             break;
         }
 
