@@ -32,8 +32,11 @@ int main(int argc, char** argv)
         Eigen::Isometry3d cMo = IMServo.detect(img);
 
         // Compute vc and apply to robot
-        std::vector<double> vc = IMServo.computeVc(cMo, 0.0001);
-        if (start_servoing) IMServo.speedL(vc); 
+        if( !cMo.isApprox(Eigen::Isometry3d::Identity()) )
+        {
+            std::vector<double> vc = IMServo.computeVc(cMo, 0.0001);
+            if (start_servoing) IMServo.speedL(vc); 
+        }
 
         cv::imshow("IMpbvs", img);
         char c = cv::waitKey(1);
@@ -62,7 +65,7 @@ int main(int argc, char** argv)
         else if (c == 'r')
         {
             std::cout << "-----REACHING-----" << "\n";
-            IMServo.reaching(0.1);
+            IMServo.reaching(0.05);
             break;
         }
 

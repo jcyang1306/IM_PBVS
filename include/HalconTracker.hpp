@@ -21,8 +21,8 @@ public:
         rs_pipe_( NULL ),
         camera_matrix_( cv::Mat::eye(3, 3, CV_64F) ),
         distortion_coeffs_( cv::Mat::zeros(5, 1, CV_64F) ),
-        pattern_size_( cv::Size(4, 4) ),
-        tag_size_(0.008),
+        pattern_size_( cv::Size(7, 7) ),
+        tag_size_(0.0025),
         pnp_solver_type_(6) // cv::SOLVEPNP_IPPE
     {
         createControlPoints();
