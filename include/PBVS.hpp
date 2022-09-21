@@ -40,9 +40,8 @@ public:
         pid_ry = std::make_unique<PID> (Dt, 0.5, -0.5, 0.4, 0.05, 0.01);
         pid_rz = std::make_unique<PID> (Dt, 0.5, -0.5, 0.4, 0.05, 0.01);
 
-
         eMc_  = createTransform(Eigen::Vector3d(0, 0, 0), 
-                                Eigen::Vector3d(180, 0, -90)); 
+                                Eigen::Vector3d(180, 35, -90)); 
 
         p_tracker = std::make_shared<HalconTracker>();
     }
@@ -71,7 +70,7 @@ public:
 
     void sixDofReaching(int num_pts, double offsetZ);
 
-    std::vector<double> servoReaching(int num_pts);
+    std::vector<double> servoReaching(int num_pts, double offsetZ);
 
     void logInfo()
     {

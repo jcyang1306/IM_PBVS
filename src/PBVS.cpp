@@ -39,7 +39,7 @@ std::vector<double> PBVS::computeVc(Eigen::Isometry3d &cMo, double rot_thres)
     // Eigen::Isometry3d cMo = p_tracker->detect(false, img);
 
     // pattern found, start servoing
-    Eigen::Isometry3d cMcd = cMo * cdMo_.translate(oMo_tvec_).inverse();
+    Eigen::Isometry3d cMcd = cMo * cdMo_.inverse();
     debug << "||cMcd|| \n" << cMcd.matrix() << "\n";
 
     std::vector<double> tcp_pose = rtde_r->getActualTCPPose();
@@ -95,7 +95,6 @@ bool PBVS::setTask(double offsetZ)
     cdMo_.rotate( Eigen::AngleAxisd(angle, aVec.normalized()) );
     cdMo_.translation() = t_term; 
     oMo_tvec_[2] = offsetZ;
-    // cdMo_.translate(oMo_tvec_);
     debug << "||cdMo|| \n" << cdMo_.matrix() << "\n\n\n";
 
     return true;
@@ -126,6 +125,7 @@ void PBVS::sixDofReaching(int num_pts, double offsetZ)
 {
     // assert (rot_converged)
     rtde_c->speedStop();
+    Eigen::Isometry3d cMo_rot = Eigen::Isometry3d::Identity();
 
     // Compute avg cMo rotation, use angleAxis for linear interpolation
     Eigen::Vector3d axisVec = Eigen::Vector3d::Zero(3,1);
@@ -146,8 +146,15 @@ void PBVS::sixDofReaching(int num_pts, double offsetZ)
     // Project Zoffset to object coordinate
     std::vector<double> tcp_pose = rtde_r->getActualTCPPose();
     Eigen::Vector3d bMe_rvec = Eigen::Vector3d(tcp_pose[3], tcp_pose[4], tcp_pose[5]);
-    Eigen::Isometry3d bMc = eMc_.inverse().prerotate( Eigen::AngleAxisd(bMe_rvec.norm(), bMe_rvec.normalized()) ); //rotation only
-    Eigen::Isometry3d bMo = bMc.rotate(Eigen::AngleAxisd(angle, axisVec.normalized() ) );
+    Eigen::Isometry3d eMc = eMc_;
+    Eigen::Isometry3d bMc = eMc.prerotate( Eigen::AngleAxisd(bMe_rvec.norm(), bMe_rvec.normalized()) ); //rotation only
+    
+    cMo_rot.rotate(Eigen::AngleAxisd(angle, axisVec.normalized()) );
+    debug << "||bMc|| " << bMc.matrix() << "\n";
+    debug << "||cMo_rot|| " << cMo_rot.matrix() << "\n";
+
+    Eigen::Isometry3d bMo = bMc * cMo_rot;
+    debug << "||bMo|| " << bMo.matrix() << "\n";
     Eigen::Vector3d tvec_proj = bMo.rotation() * Eigen::Vector3d(0, 0, -offsetZ);
     debug << "||tvec_proj|| " << tvec_proj.transpose() << "\n";
 
@@ -158,21 +165,22 @@ void PBVS::sixDofReaching(int num_pts, double offsetZ)
         tcp_pose[1] += tvec_proj[1] / num_pts;
         tcp_pose[2] += tvec_proj[2] / num_pts;
         rtde_c->moveL(tcp_pose, 0.01, 0.02); // modify spd and acc here?
+        // rtde_c->servoL(tcp_pose, 0.005, 0.02, 0, 0.1, 200); // modify spd and acc here?
         debug << "idx " << i << "/" << num_pts << "\n";
     }
 
     return;
 }
 
-std::vector<double> PBVS::servoReaching(int num_pts)
+std::vector<double> PBVS::servoReaching(int num_pts, double offsetZ)
 {
     // assert(rot_converged)
 
-    double offsetZ = oMo_tvec_[2];
+    // double offsetZ = oMo_tvec_[2];
     std::vector<double> waypoints;
     for (int i = 0; i < num_pts; ++i)
     {
-        double pt = offsetZ * i  / num_pts ;
+        double pt = offsetZ - offsetZ * i  / num_pts;
         waypoints.push_back(pt);
         debug << "idx " << i << "/" << num_pts << ": " << pt << "\n";
     }
