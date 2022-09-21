@@ -39,12 +39,14 @@ std::vector<double> PBVS::computeVc(Eigen::Isometry3d &cMo, double rot_thres)
     // Eigen::Isometry3d cMo = p_tracker->detect(false, img);
 
     // pattern found, start servoing
-    Eigen::Isometry3d cMcd = cMo * cdMo_.inverse();
+    Eigen::Isometry3d cdMo_cp = cdMo_;
+    Eigen::Isometry3d cMcd = cMo * cdMo_cp.translate(oMo_tvec_).inverse();
     debug << "||cMcd|| \n" << cMcd.matrix() << "\n";
 
     std::vector<double> tcp_pose = rtde_r->getActualTCPPose();
     Eigen::Vector3d bMe_rvec = Eigen::Vector3d(tcp_pose[3], tcp_pose[4], tcp_pose[5]);
-    Eigen::Isometry3d bMc = eMc_.inverse().prerotate( Eigen::AngleAxisd(bMe_rvec.norm(), bMe_rvec.normalized()) ); //rotation only
+    Eigen::Isometry3d eMc = eMc_;
+    Eigen::Isometry3d bMc = eMc.prerotate( Eigen::AngleAxisd(bMe_rvec.norm(), bMe_rvec.normalized()) ); //rotation only
     debug << "||bMc|| \n" << bMc.matrix() << "\n";
 
     Eigen::Isometry3d err_mat = bMc * cMcd; //bMvc
