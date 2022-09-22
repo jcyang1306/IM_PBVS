@@ -49,7 +49,8 @@ public:
 
     bool setGain();
 
-    bool setTask(Eigen::Isometry3d  &cdMo);
+    bool setTask(Eigen::Isometry3d  &cdMo, double offsetZ);
+    
     bool setTask(double offsetZ);
 
     bool connectRobot();

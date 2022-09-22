@@ -2,6 +2,7 @@
 
 #define debug if (1) std::cout
 #define debug_assert if (0) assert
+#define STATIC_CDMO
 
 int main(int argc, char** argv)
 {
@@ -58,7 +59,21 @@ int main(int argc, char** argv)
         else if (c == 't')
         {
             std::cout << "\n\n\n-----STORED CURRENT cdMo-----" << "\n";
-            IMServo.setTask(0.08); // save curr pose as desired pose
+            #if defined(STATIC_CDMO)
+            {
+                Eigen::Matrix4d cdMo_mat;
+                cdMo_mat << 0.0124074,   0.999916,        0.0038176,   -0.00853325,
+                            0.829526,    -0.0124248,      0.55833,     0.000244082,
+                            0.55833,     -0.00376063,     -0.82961,    0.0352478,
+                            0,           0,               0,           1;
+                Eigen::Isometry3d cdMo_static(cdMo_mat);
+                IMServo.setTask(cdMo_static, -0.05); // negative offsetZ
+
+                continue;
+            }
+            #endif
+
+            IMServo.setTask(0.05); // save curr pose as desired pose
             continue;
         }
 
@@ -73,7 +88,7 @@ int main(int argc, char** argv)
         {
             std::cout << "-----REACHING-----" << "\n";
             IMServo.topdownReaching(0.05);
-            servo_waypts = IMServo.servoReaching(20);
+            servo_waypts = IMServo.servoReaching(200, 0.05);
             break;
         }
 

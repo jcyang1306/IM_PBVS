@@ -73,6 +73,16 @@ std::vector<double> PBVS::computeVc(Eigen::Isometry3d &cMo, double rot_thres)
     return vc;
 }
 
+bool PBVS::setTask(Eigen::Isometry3d &cdMo, double offsetZ)
+{
+    // assert( is Iso3d?)
+
+    debug << "||static cdMo||: " << cdMo.matrix() << "\n";
+    cdMo_ = cdMo;
+    setZoffset(offsetZ);
+    return true;
+}
+
 bool PBVS::setTask(double offsetZ)
 {
     rtde_c->speedStop();
@@ -180,9 +190,10 @@ std::vector<double> PBVS::servoReaching(int num_pts, double offsetZ)
 
     // double offsetZ = oMo_tvec_[2];
     std::vector<double> waypoints;
+    double offset_base = oMo_tvec_[2];
     for (int i = 0; i < num_pts; ++i)
     {
-        double pt = offsetZ - offsetZ * i  / num_pts;
+        double pt = offsetZ - offsetZ * i  / num_pts + offset_base;
         waypoints.push_back(pt);
         debug << "idx " << i << "/" << num_pts << ": " << pt << "\n";
     }
