@@ -1,11 +1,11 @@
-#include "HalconTracker.hpp"
+#include "HalconDetector.hpp"
 
 
 #define debug if (0) std::cout
 #define debug_assert if (0) assert
 bool undestorted = true;
 
-bool HalconTracker::connectCamera(int camera_type, cv::Size resolution, int refresh_rate)
+bool HalconDetector::connectCamera(int camera_type, cv::Size resolution, int refresh_rate)
 {
     // TODO 
     // Check camera_type here
@@ -68,7 +68,7 @@ bool HalconTracker::connectCamera(int camera_type, cv::Size resolution, int refr
     return true;
 }
 
-bool HalconTracker::setTargetParams(cv::Size pattern_size, double tag_size, int pnp_solver_type)
+bool HalconDetector::setTargetParams(cv::Size pattern_size, double tag_size, int pnp_solver_type)
 {
     // assert pnp type in range
     pattern_size_ = pattern_size;
@@ -79,7 +79,7 @@ bool HalconTracker::setTargetParams(cv::Size pattern_size, double tag_size, int 
     return true;
 }
 
-void HalconTracker::createControlPoints()
+void HalconDetector::createControlPoints()
 {
     // creating 
     obj_pts_.clear();
@@ -94,7 +94,7 @@ void HalconTracker::createControlPoints()
     return;
 } 
 
-bool HalconTracker::capture(cv::Mat &img)
+bool HalconDetector::capture(cv::Mat &img)
 {
     auto frames = rs_pipe_->wait_for_frames();
     rs2::frame color_frame = frames.get_color_frame();
@@ -104,7 +104,7 @@ bool HalconTracker::capture(cv::Mat &img)
     return true;
 }
 
-Eigen::Isometry3d HalconTracker::detect(cv::Mat &img_raw, bool &success)
+Eigen::Isometry3d HalconDetector::detect(cv::Mat &img_raw, bool &success)
 {
     // convert to gray if rgb input type
     cv::Mat img;

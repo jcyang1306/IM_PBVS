@@ -1,4 +1,4 @@
-#include "HalconTracker.hpp"
+#include "HalconDetector.hpp"
 
 #include <ur_rtde/rtde_control_interface.h>
 #include <ur_rtde/rtde_receive_interface.h>
@@ -24,9 +24,9 @@ void signal_handler(int signum) {
 int main(int argc, char** argv) try
 {
     // Camera
-    HalconTracker tracker;
+    HalconDetector detector;
     // cv resolution(1280, 720);
-    tracker.connectCamera(0, cv::Size(1280, 720), 30);
+    detector.connectCamera(0, cv::Size(1280, 720), 30);
 
     Eigen::Isometry3d cdMo = createTransform(Eigen::Vector3d(0, 0, 0.2), //translation
                                              Eigen::Vector3d(180, 0, -90)); // rpy in degree
@@ -61,8 +61,9 @@ int main(int argc, char** argv) try
     while(1)
     {
         auto start = std::chrono::high_resolution_clock::now();
-        tracker.capture(img);
-        Eigen::Isometry3d cMo = tracker.detect(img);
+        detector.capture(img);
+        bool detected = true;
+        Eigen::Isometry3d cMo = detector.detect(img, detected);
         cv::imshow("pbvs", img);
         char c = cv::waitKey(1);
         if (c == 'q')
@@ -89,8 +90,9 @@ int main(int argc, char** argv) try
 
             for (int i = 0; i < 3; ++i) 
             {
-                tracker.capture(img);
-                Eigen::Isometry3d cMo_tmp = tracker.detect(img);
+                detector.capture(img);
+                bool detected = true;
+                Eigen::Isometry3d cMo_tmp = detector.detect(img, detected);
                 t_term += cMo_tmp.translation();
             }
             t_term /= 4;

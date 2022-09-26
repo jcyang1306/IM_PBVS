@@ -5,7 +5,7 @@
 #include <thread>
 #include <chrono>
 
-#include "HalconTracker.hpp"
+#include "HalconDetector.hpp"
 #include "pid.hpp"
 #include "pbvs_helper.hpp"
 
@@ -18,7 +18,7 @@ public:
     PBVS():
         cdMo_( Eigen::Isometry3d::Identity() ),
         eMc_( Eigen::Isometry3d::Identity() ),
-        p_tracker( NULL ),
+        halcon_detector( NULL ),
         rtde_c( NULL ),
         rtde_r( NULL ),
         oMo_tvec_( Eigen::Vector3d::Zero(3, 1) )
@@ -43,14 +43,14 @@ public:
         eMc_  = createTransform(Eigen::Vector3d(0, 0, 0), 
                                 Eigen::Vector3d(180, 35, -90)); 
 
-        p_tracker = std::make_shared<HalconTracker>();
+        halcon_detector = std::make_shared<HalconDetector>();
     }
     ~PBVS() {};
 
     bool setGain();
 
     bool setTask(Eigen::Isometry3d  &cdMo, double offsetZ);
-    
+
     bool setTask(double offsetZ);
 
     bool connectRobot();
@@ -59,7 +59,7 @@ public:
 
     bool capture(cv::Mat &img);
 
-    Eigen::Isometry3d detect(cv::Mat &img);
+    Eigen::Isometry3d detect(cv::Mat &img, bool &detected);
 
     std::vector<double> computeVc(Eigen::Isometry3d &cMo, double rot_thres);
 
@@ -85,7 +85,7 @@ protected:
     Eigen::Isometry3d cdMo_;
     Eigen::Vector3d oMo_tvec_;
     Eigen::Isometry3d eMc_;
-    std::shared_ptr<HalconTracker> p_tracker;
+    std::shared_ptr<HalconDetector> halcon_detector;
     std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_c;
     std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_r;
 
@@ -95,4 +95,4 @@ protected:
     std::unique_ptr<PID> pid_rx;
     std::unique_ptr<PID> pid_ry;
     std::unique_ptr<PID> pid_rz;
-}; // class HalconTracker 
+}; // class 

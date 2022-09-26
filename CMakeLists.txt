@@ -28,43 +28,43 @@ set(realsense2_LIBRARY_DIRS "/usr/lib/x86_64-linux-gnu")
 set(realsense2_LIBRARIES "${realsense2_LIBRARY_DIRS}/librealsense2.so")
 
 
-add_library(halcon_tracker SHARED
-            src/HalconTracker.cpp
+add_library(halcon_detector SHARED
+            src/HalconDetector.cpp
             src/PBVS.cpp
             src/pid.cpp
             )   
 
 # Include directories
-target_include_directories(halcon_tracker PUBLIC
+target_include_directories(halcon_detector PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         /home/fruit/tools/vcpkg/installed/x64-linux/include # realsense include dir problem fix
         ${EIGEN3_INCLUDE_DIRS}
 )
 
 # Target dependencies 
-ament_target_dependencies(halcon_tracker
+ament_target_dependencies(halcon_detector
   realsense2
   OpenCV
   Boost
 )
 
-target_link_libraries(halcon_tracker ur_rtde::rtde)
+target_link_libraries(halcon_detector ur_rtde::rtde)
 
 
 ament_export_dependencies(realsense2 OpenCV Boost Eigen3)
 
-install(TARGETS halcon_tracker
+install(TARGETS halcon_detector
         DESTINATION lib)
 
 # executable for testing
-add_executable(halconTrackerTester test/HalconTrackerTester.cpp)
-target_link_libraries(halconTrackerTester halcon_tracker)
+add_executable(halconDetectorTester test/HalconDetectorTester.cpp)
+target_link_libraries(halconDetectorTester halcon_detector)
 
 add_executable(pidTester test/pidTester.cpp)
-target_link_libraries(pidTester halcon_tracker)
+target_link_libraries(pidTester halcon_detector)
 
 add_executable(IMServoTester test/PBVSTester.cpp)
-target_link_libraries(IMServoTester halcon_tracker)
+target_link_libraries(IMServoTester halcon_detector)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

@@ -13,11 +13,11 @@
 #include <boost/array.hpp>
 
 
-class HalconTracker 
+class HalconDetector 
 {
 
 public:
-    HalconTracker():
+    HalconDetector():
         rs_pipe_( NULL ),
         camera_matrix_( cv::Mat::eye(3, 3, CV_64F) ),
         distortion_coeffs_( cv::Mat::zeros(5, 1, CV_64F) ),
@@ -27,7 +27,7 @@ public:
     {
         createControlPoints();
     };
-    ~HalconTracker() {};
+    ~HalconDetector() {};
 
     // cam_type, resolution, fps
     // get cam_matrix , dist_coeff
@@ -52,6 +52,6 @@ protected:
     double tag_size_;
     int pnp_solver_type_;
     std::vector<cv::Point3f> obj_pts_;
-}; // class HalconTracker 
+}; // class HalconDetector 
 
 

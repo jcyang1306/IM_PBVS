@@ -30,10 +30,11 @@ int main(int argc, char** argv)
         auto start = std::chrono::high_resolution_clock::now();
 
         IMServo.capture(img);
-        Eigen::Isometry3d cMo = IMServo.detect(img);
+        bool detected = true;
+        Eigen::Isometry3d cMo = IMServo.detect(img, detected);
 
         // Compute vc and apply to robot
-        if( !cMo.isApprox(Eigen::Isometry3d::Identity()) )
+        if( detected )
         {
             if (start_servoing && !servo_waypts.empty())
             {

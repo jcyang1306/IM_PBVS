@@ -18,25 +18,25 @@ bool PBVS::connectRobot()
 
 bool PBVS::connectCamera(int cam_type, cv::Size resolution, int fps)
 {
-    if (!p_tracker) return false;
-    return p_tracker->connectCamera(cam_type, resolution, fps);
+    if (!halcon_detector) return false;
+    return halcon_detector->connectCamera(cam_type, resolution, fps);
 }
 
 bool PBVS::capture(cv::Mat &img)
 {
-    if (!p_tracker) return false;
-    return p_tracker->capture(img);
+    if (!halcon_detector) return false;
+    return halcon_detector->capture(img);
 }
 
-Eigen::Isometry3d PBVS::detect(cv::Mat &img)
+Eigen::Isometry3d PBVS::detect(cv::Mat &img, bool &detected)
 {
-    if (!p_tracker) return Eigen::Isometry3d::Identity();
-    return p_tracker->detect(img);
+    if (!halcon_detector) return Eigen::Isometry3d::Identity();
+    return halcon_detector->detect(img, detected);
 }
 
 std::vector<double> PBVS::computeVc(Eigen::Isometry3d &cMo, double rot_thres)
 {
-    // Eigen::Isometry3d cMo = p_tracker->detect(false, img);
+    // Eigen::Isometry3d cMo = halcon_detector->detect(false, img);
 
     // pattern found, start servoing
     Eigen::Isometry3d cdMo_cp = cdMo_;
@@ -93,8 +93,9 @@ bool PBVS::setTask(double offsetZ)
     for (int i = 0; i < 5; ++i) 
     {
         cv::Mat img;
-        p_tracker->capture(img);
-        Eigen::Isometry3d cMo_tmp = p_tracker->detect(img);
+        halcon_detector->capture(img);
+        bool detected = true;
+        Eigen::Isometry3d cMo_tmp = halcon_detector->detect(img, detected);
         t_term += cMo_tmp.translation();
         Eigen::AngleAxisd aVec_tmp = Eigen::AngleAxisd(cMo_tmp.rotation());
         aVec += aVec_tmp.axis();
@@ -146,8 +147,9 @@ void PBVS::sixDofReaching(int num_pts, double offsetZ)
     for (int i = 0; i < num_samples; ++i) 
     {
         cv::Mat img;
-        p_tracker->capture(img);
-        Eigen::Isometry3d cMo_tmp = p_tracker->detect(img);
+        halcon_detector->capture(img);
+        bool detected = true;
+        Eigen::Isometry3d cMo_tmp = halcon_detector->detect(img, detected);
         Eigen::AngleAxisd aVec_tmp = Eigen::AngleAxisd(cMo_tmp.rotation());
         axisVec += aVec_tmp.axis();
         angle += aVec_tmp.angle();
