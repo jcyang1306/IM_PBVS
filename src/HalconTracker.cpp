@@ -104,67 +104,7 @@ bool HalconTracker::capture(cv::Mat &img)
     return true;
 }
 
-
-
-
-
-bool HalconTracker::detect(cv::Mat &cMo, bool display)
-{
-    auto frames = rs_pipe_->wait_for_frames();
-    rs2::frame color_frame = frames.get_color_frame();
-    cv::Mat img_raw = cv::Mat(cv::Size(1280, 720), CV_8UC3, (void*)color_frame.get_data(), cv::Mat::AUTO_STEP);
-
-    // convert to gray if rgb input type
-    cv::Mat img;
-    if (img_raw.channels() == 3)
-    {
-        cv::cvtColor(img_raw, img, cv::COLOR_RGB2GRAY);
-    }
-    else 
-    {
-        img = img_raw;
-    }
-
-    std::vector<cv::Point2f> centers; //this will be filled by the detected centers
-    bool patternfound = findCirclesGrid(img, pattern_size_, centers);
-    if (!patternfound) 
-    {
-        std::cout << "Failed to detect pattern" << "\n";
-        if(display) 
-        {
-            cv::imshow("s", img_raw);
-            char c = cv::waitKey(1);
-        }
-        return false;
-    }
-
-    drawChessboardCorners(img_raw, pattern_size_, cv::Mat(centers), patternfound);
-    // estimate pose
-    cv::Vec3d tvec;
-    cv::Vec3d rvec;
-    bool useExtrinsicGuess = false;
-    solvePnP(obj_pts_, centers, camera_matrix_, distortion_coeffs_, rvec, tvec, useExtrinsicGuess, cv::SOLVEPNP_IPPE);
-    cv::Mat Rot_matrix;
-    cv::Rodrigues(rvec, Rot_matrix);
-    
-    // return value
-    Rot_matrix.copyTo(cMo(cv::Range(0,3), cv::Range(0,3)));
-    cMo.at <double>(0,3) = tvec[0];
-    cMo.at <double>(1,3) = tvec[1];
-    cMo.at <double>(2,3) = tvec[2];
-    cMo.at <double>(3,3) = 1.0;
-
-    debug << "||cMo|| \n" << cMo << "\n";
-    if(display) 
-    {
-        cv::imshow("s", img_raw);
-        char c = cv::waitKey(1);
-    }
-
-    return true;
-}
-
-Eigen::Isometry3d HalconTracker::detect(cv::Mat &img_raw)
+Eigen::Isometry3d HalconTracker::detect(cv::Mat &img_raw, bool &success)
 {
     // convert to gray if rgb input type
     cv::Mat img;
@@ -182,6 +122,7 @@ Eigen::Isometry3d HalconTracker::detect(cv::Mat &img_raw)
     if (!patternfound) 
     {
         std::cout << "Failed to detect pattern" << "\n";
+        success = false;
         return Eigen::Isometry3d::Identity();
     }
 
@@ -201,5 +142,6 @@ Eigen::Isometry3d HalconTracker::detect(cv::Mat &img_raw)
     cMo.pretranslate(eigenVec3);
     debug << "||cMo|| \n" << cMo.matrix() << "\n";
 
+    success = true;
     return cMo;
 }

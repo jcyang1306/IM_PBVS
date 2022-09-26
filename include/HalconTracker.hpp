@@ -32,30 +32,14 @@ public:
     // cam_type, resolution, fps
     // get cam_matrix , dist_coeff
     bool connectCamera(int camera_type, cv::Size resolution, int refresh_rate);
-    // getCameraInfo()
 
     // cv::Size, tag_size, pnp_sovler
     bool setTargetParams(cv::Size pattern_size, double tag_size, int pnp_solver_type);
-    // getTargetConfig()
-
-    // bool setDesiredPose(Eigen::Matrix4d cdMo);
-    // bool setDesiredPose(Eigen::Vector3d tvec, Eigen::Vector3d rvec);
-    // bool setGain();
-
-    // get frame, detect, vis?
-    // bool detect(cv::Mat &cMo);
 
     bool capture(cv::Mat &img);
 
-    bool detect(cv::Mat &cMo, bool visualize);
+    Eigen::Isometry3d detect(cv::Mat &img_raw, bool &success);
 
-    Eigen::Isometry3d detect(cv::Mat &img_raw);
-
-    // bool detect(Eigen::Matrix4d &cMo);
-    // bool detect(Eigen::Vector3d &tvec, Eigen::Vector3d rvec); // xyz + nomalized_axis * angle
-    // bool detect(Eigen::Vector3d &tvec, Eigen::Vector4d quat); // xyz + quaternion(xyzw)
-    // Eigen::Matrix4d detect();
-    
     void createControlPoints();
 
     // offline detect
